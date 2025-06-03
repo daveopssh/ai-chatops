@@ -1,0 +1,10 @@
+[project]
+name = "openai-pp"
+version = "0.1.0"
+description = "Me learning AI with OpenAI"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "openai>=1.83.0",
+]
