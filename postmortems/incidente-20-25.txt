@@ -1,0 +1,51 @@
+Que Ocurrio?
+20/03/2025
+22:00 – Se disparan alertas: el frontend reporta “401 Unauthorized” en todas las peticiones de login.  
+22:02 – El ingeniero de guardia revisa los logs de Nginx y ve:  
+       `SSL routines:ssl3_get_client_certificate:certificate verify failed`  
+22:05 – Mirror mágico de “¿por qué no hay café?” y descubrimiento del culpable: el certificado SSL expiró.  
+22:10 – Validación del fallo:  
+       openssl x509 -in /etc/ssl/certs/auth-service.pem -noout -enddate  
+       → `notAfter=Mar 20 21:59:59 2025 GMT`  
+22:12 – Plan de acción definido: renovar certificado y recargar servicios.  
+22:15 – Ejecución de renovación:  
+       # Con Certbot  
+       certbot certonly --standalone -d auth.example.com  
+22:18 – Reemplazo de archivos y reinicio suave:  
+       systemctl reload nginx  
+       systemctl restart auth-service  
+22:20 – Verificación final: peticiones de login exitosas (200 OK).  
+
+Servicios afectados
+- Servicio de autenticación (auth-service).
+- Cualquier aplicación o microservicio que dependa del login.
+
+Como se mitigo el problema 
+•	Renovación manual del certificado SSL con Certbot.
+•	Recarga de Nginx y reinicio del servicio de autenticación para aplicar el nuevo certificado.
+
+Puede automatizarse?
+
+Sí, y de hecho es imprescindible para no volver a recibir este “regalito” sorpresa. Para el futuro:
+```
+# Ejemplo de script sencillo en /usr/local/bin/check-cert-expiry.sh
+#!/usr/bin/env bash
+EXPIRY=$(openssl x509 -in /etc/ssl/certs/auth-service.pem -noout -enddate \
+         | cut -d= -f2 \
+         | xargs -I{} date -d "{}" +%s)
+NOW=$(date +%s)
+DIFF=$(( (EXPIRY - NOW) / 86400 ))
+if [ "$DIFF" -lt 15 ]; then
+  echo "ALERTA: certificado expira en $DIFF días" | mail -s "Cert Expiry Warning" oncall@example.com
+fi
+```
+Renovacion automatica 
+```
+# /etc/letsencrypt/cli.ini
+renew-hook = "systemctl reload nginx && systemctl restart auth-service"
+```
+Agregar a cron 
+```
+0 2 * * * /usr/local/bin/check-cert-expiry.sh
+30 2 * * * certbot renew --quiet
+```

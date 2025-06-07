@@ -1,0 +1,40 @@
+Que ocurrio?
+25/03/2025  
+08:00 – Alertas de “500 Internal Server Error” en el dashboard de reportes.  
+08:02 – Ingeniero de guardia se conecta por SSH al servidor de reportes (`report-server-01`).  
+08:04 – Chequeo rápido de espacio en disco:  
+       df -h /var  
+       → `/dev/sda1       100G   100G   0G 100% /var`  
+08:06 – Listado de archivos más pesados en `/var/tmp`:  
+       du -ah /var/tmp | sort -rh | head -n 10  
+08:08 – Se observan miles de archivos temporales (`report_*.tmp`) acumulados: ~120 GB.  
+08:10 – Prueba de eliminación manual de muestra:  
+       rm /var/tmp/report_oldsession_*.tmp  
+       → libera 5 GB al instante  
+08:12 – Confirmación de que la aplicación vuelve a generar reportes (200 OK).  
+08:15 – Limpieza completa de todos los temporales:  
+       find /var/tmp -name "report_*.tmp" -type f -mtime +1 -delete  
+08:18 – Verificación final de espacio libre:  
+       df -h /var  
+       → ahora 30 GB libres  
+
+Servicios Afectados 
+- Servicio de generacion de reportes (report-service)
+- Cualquier funcionalidad que dependa de los reportes 
+
+Como se mitigo
+- Eliminación manual de los archivos temporales obsoletos del directorio /var/tmp.
+- Verificación de la recuperación del servicio y espacio en disco.
+
+Puede automatizarse 
+Si 
+
+```
+#!/usr/bin/env bash
+# Eliminar temporales de reporte mayores a 1 día
+find /var/tmp -name "report_*.tmp" -type f -mtime +1 -print -delete
+```
+luego en cron 
+```
+30 3 * * * /usr/local/bin/clean-report-tmp.sh >> /var/log/clean-report-tmp.log 2>&1
+```

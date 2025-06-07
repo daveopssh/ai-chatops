@@ -1,0 +1,31 @@
+Que ocurrio? 
+
+03:00 - Alerta de servidor queries tardando mas de 5 segundos en responder
+03:05 - Alerta servidor de aplicacione aumento de tiempos de respuesta de 50ms a 1m 
+03:15 - Errors for recibidos por el ingeniero en guardia 
+03:16 - Se procedio a mirar la base de datos. A nivel de infraestructura, espacio en disco, capacidad de CPU y memoria todo esta bien 
+03:20 - Se detectaron unas queries a la table de `productos_limpieza` que tardaban en responder 
+03:21 - Al parecer la tabla carecia de indices en el campo `product_id`
+
+Comandos utilizados 
+Para detectar falta de Indices 
+SELECT
+  indexname, indexdef
+FROM pg_indexes
+WHERE schemaname = 'public'
+  AND tablename = 'productos de limpieza'
+  AND indexdef ILIKE '%(product_id)%';
+
+Para Agregar indice
+CREATE INDEX CONCURRENTLY idx_prod_limpieza_product_id_conc
+  ON "productos de limpieza"(product_id);
+
+Que servicio fueron afectados?
+- Base de datos de production -  table de productos de limpieza
+- Servicio de busqueda de productos 
+
+Como se mitigo el problema?
+- Agregue el indice faltante a la tabla de productos de limpieza.
+
+Puede automatizarse? 
+ En este caso no hace falta ya que el indice ya fue creado y no se espera que vuelva a ocurrir 
