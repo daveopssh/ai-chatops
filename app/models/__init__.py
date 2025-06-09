@@ -1,1 +1,1 @@
-from .chat import ChatRequest
+from .chat import ChatRequest, ChatResponse
