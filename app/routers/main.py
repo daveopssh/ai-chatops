@@ -10,7 +10,7 @@ def chat_service():
 async def root():
     return "Ok"
 
-@router.post("/chat", response_class=ChatResponse, status_code=status.HTTP_200_OK)
+@router.post("/chat", response_model=ChatResponse, status_code=status.HTTP_200_OK)
 async def chat(payload: ChatRequest, chat_service=Depends(chat_service)):
-    response = chat_service.chat(payload)
+    response = chat_service.chat(payload.chat)
     return ChatResponse(response=response)

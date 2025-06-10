@@ -7,4 +7,3 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     response: str
-   # error: Optional[str] = None

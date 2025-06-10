@@ -1,5 +1,6 @@
 import os
-from langchain_postgres.vectorstores import PGVector
+from langchain_postgres import PGVector
+#from langchain_postgres.vectorstores import PGVector
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -27,19 +28,18 @@ class VectorStore:
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         split_documents = text_splitter.split_documents(raw_document)
         return split_documents
-
+    
+    # TODO: Check if embeddings already exist in the database and if cannot connect to the database, raise an error.
     def init_db(self):
         """Initialize the database connection and return the PGVector instance."""
         if self.db is not None:
-            return self.db
+            self.db = PGVector.from_documents(
+                documents=self.documents,
+                embedding=self.embedding,
+                connection=self.connection_string,
+                collection_name=self.collection_name
+            ) 
  
-        self.db = PGVector.from_documents(
-            documents=self.documents,
-            embedding=self.embedding,
-            connection=self.connection_string,
-            collection_name=self.collection_name
-        ) 
-    
     def add_documents(self, file_path: str):
         """Add documents to the vector store."""
         if self.db is None:
