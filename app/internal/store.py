@@ -1,6 +1,7 @@
 import os
+from typing import List
+from sqlalchemy.orm import Session
 from langchain_postgres import PGVector
-#from langchain_postgres.vectorstores import PGVector
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
@@ -23,23 +24,37 @@ class VectorStore:
         for files in os.listdir("./postmortems"):
             self.documents.extend(self._load_document(f"./postmortems/{files}"))
 
-    def _load_document(self, file_path: str) -> Document:
+    def _load_document(self, file_path: str) -> List[Document]:
         raw_document = TextLoader(file_path).load()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         split_documents = text_splitter.split_documents(raw_document)
         return split_documents
-    
-    # TODO: Check if embeddings already exist in the database and if cannot connect to the database, raise an error.
+
     def init_db(self):
         """Initialize the database connection and return the PGVector instance."""
-        if self.db is not None:
-            self.db = PGVector.from_documents(
+        store = PGVector(
+            embeddings=self.embedding,
+            connection=self.connection_string,
+            collection_name=self.collection_name
+        )
+
+        session = Session(store.session_maker().bind)
+        docs = session.query(store.EmbeddingStore.document).all()
+        if len(docs) > 0:
+            self.db = store.from_existing_index(
+                embedding=self.embedding,
+                connection=self.connection_string,
+                collection_name=self.collection_name
+            )
+        else:
+            self.db = store.from_documents(
                 documents=self.documents,
                 embedding=self.embedding,
                 connection=self.connection_string,
                 collection_name=self.collection_name
-            ) 
- 
+            )
+        return
+
     def add_documents(self, file_path: str):
         """Add documents to the vector store."""
         if self.db is None:

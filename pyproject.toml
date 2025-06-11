@@ -11,4 +11,5 @@ dependencies = [
     "langchain-openai>=0.3.19",
     "langchain-postgres>=0.0.14",
     "psycopg-binary>=3.2.9",
+    "sqlalchemy>=2.0.41",
 ]

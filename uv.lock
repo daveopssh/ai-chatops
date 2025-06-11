@@ -741,6 +741,7 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "langchain-postgres" },
     { name = "psycopg-binary" },
+    { name = "sqlalchemy" },
 ]
 
 [package.metadata]
@@ -751,6 +752,7 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=0.3.19" },
     { name = "langchain-postgres", specifier = ">=0.0.14" },
     { name = "psycopg-binary", specifier = ">=3.2.9" },
+    { name = "sqlalchemy", specifier = ">=2.0.41" },
 ]
 
 [[package]]
