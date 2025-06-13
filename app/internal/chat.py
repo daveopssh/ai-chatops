@@ -13,7 +13,7 @@ if not OPENAI_API_KEY:
     raise RuntimeError("OPENAI_API_KEY environment variable is not set.")
 
 class ChatService:
-    
+
     def __init__(self, db: VectorStore):
         self.db = db
         self.memory = ConversationBufferMemory(
