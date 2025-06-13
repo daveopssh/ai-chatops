@@ -3,7 +3,6 @@ from app.routers import router
 from app.internal.store import VectorStore 
 from app.internal.chat import ChatService
 
-
 app = FastAPI()
 app.include_router(router)
 
@@ -12,7 +11,7 @@ store = VectorStore(
     connection_string="postgresql+psycopg://postgres:mysecretpassword@localhost:5432/vector_db"
 )
 
-chat_service = ChatService(store)
+chat_service = ChatService(db=store)
 
 @app.on_event("startup")
 async def startup_event():
