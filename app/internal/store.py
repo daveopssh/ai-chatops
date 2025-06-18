@@ -10,6 +10,7 @@ from langchain_openai import OpenAIEmbeddings
 EMBEDDING_MODEL = "text-embedding-3-small"
 COLLECTION_NAME = "postmortems"
 
+
 class VectorStore:
     def __init__(self, connection_string: str, collection_name: str = COLLECTION_NAME ):
         self.connection_string = connection_string
