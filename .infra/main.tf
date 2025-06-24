@@ -67,7 +67,7 @@ resource "aws_secretsmanager_secret" "this" {
 resource "aws_secretsmanager_secret_version" "this" {
   secret_id = aws_secretsmanager_secret.this.id
   secret_string = jsonencode({
-    OPENAI_KEY = "",
+    OPENAI_API_KEY = "",
     }
   )
   lifecycle {
@@ -96,10 +96,13 @@ resource "aws_security_group" "davebot_db_sg" {
   vpc_id      = module.vpc.vpc_id
 
   ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [local.myip] # Adjust this to restrict access
+    from_port = 5432
+    to_port   = 5432
+    protocol  = "tcp"
+    cidr_blocks = [
+      local.myip,
+      "10.0.0.0/16"
+    ]
   }
 
   egress {
@@ -191,7 +194,7 @@ module "alb" {
   name    = "davebot-alb"
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.public_subnets
-  
+
   enable_deletion_protection = false
 
   # Security Group
@@ -277,7 +280,7 @@ resource "aws_ecs_task_definition" "davebot_task" {
   container_definitions = jsonencode([
     {
       name      = "davebot-container"
-      image     = "${aws_ecr_repository.this.repository_url}:amd64"
+      image     = "${aws_ecr_repository.this.repository_url}:amd64-v24"
       cpu       = 256
       memory    = 512
       essential = true
@@ -290,7 +293,7 @@ resource "aws_ecs_task_definition" "davebot_task" {
           awslogs-stream-prefix = "ecs"
         }
       }
-      
+
       portMappings = [
         {
           containerPort = 8000
@@ -298,18 +301,18 @@ resource "aws_ecs_task_definition" "davebot_task" {
           protocol      = "tcp"
         }
       ]
-      
+
       secrets = [
         {
-          name  = "OPENAI_KEY"
-          valueFrom = aws_secretsmanager_secret.this.arn
+          name      = "OPENAI_API_KEY"
+          valueFrom = "${aws_secretsmanager_secret.this.arn}:OPENAI_API_KEY::"
         },
         {
-          name  = "DB_USER"
+          name      = "DB_USER"
           valueFrom = "${module.db.db_instance_master_user_secret_arn}:username::"
         },
         {
-          name  = "DB_PASSWORD"
+          name      = "DB_PASSWORD"
           valueFrom = "${module.db.db_instance_master_user_secret_arn}:password::"
         }
       ]
@@ -354,7 +357,9 @@ resource "aws_ecs_service" "davebot_service" {
 }
 
 
-
+output "service_url" {
+  value = "http://${module.alb.dns_name}"
+}
 
 
 
