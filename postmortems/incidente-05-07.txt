@@ -1,0 +1,17 @@
+Título: Caída del balanceador de carga
+
+Fecha y hora del incidente: 2025-07-05 11:00 UTC
+
+Duración del incidente: 1.5 horas
+
+Impacto: La aplicación web principal estuvo inaccesible para todos los usuarios.
+
+Causa raíz: Un error de configuración en el balanceador de carga después de una actualización de software provocó que dejara de dirigir el tráfico a los servidores de la aplicación.
+
+Acciones de mitigación:
+- Se revirtió la actualización de software del balanceador de carga a la versión estable anterior.
+- Se restauró la configuración del balanceador de carga desde una copia de seguridad.
+
+Lecciones aprendidas:
+- Validar los cambios de configuración en un entorno de pre-producción antes de aplicarlos en producción.
+- Automatizar el proceso de despliegue de la configuración del balanceador de carga para reducir el riesgo de errores manuales.

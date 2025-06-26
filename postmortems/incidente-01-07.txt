@@ -1,0 +1,18 @@
+Título: Falla en el servicio de notificaciones
+
+Fecha y hora del incidente: 2025-07-01 18:00 UTC
+
+Duración del incidente: 3 horas
+
+Impacto: Los usuarios no recibían notificaciones por correo electrónico ni notificaciones push.
+
+Causa raíz: El servicio de mensajería (message queue) utilizado para las notificaciones se quedó sin espacio en disco.
+
+Acciones de mitigación:
+- Se liberó espacio en el disco del servidor de mensajería.
+- Se reinició el servicio de notificaciones.
+- Se procesaron las notificaciones que habían quedado encoladas.
+
+Lecciones aprendidas:
+- Implementar un sistema de monitoreo y alertas para el espacio en disco de los servidores críticos.
+- Establecer una política de rotación y archivado de logs para evitar que consuman todo el espacio.
